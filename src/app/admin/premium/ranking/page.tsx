@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase.ts'
+import { supabase } from '@/lib/supabase'
 import { Trophy, Medal, ShieldCheck } from 'lucide-react' // ExternalLink removido
 import { motion } from 'framer-motion'
 
@@ -101,4 +101,5 @@ export default function PublicRankingPage() {
       </div>
     </div>
   )
+
 }
