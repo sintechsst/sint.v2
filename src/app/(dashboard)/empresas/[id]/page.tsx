@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase.ts';
+import { supabase } from '@/lib/supabase';
 import {
   Building2,
   FileText,
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { formatarCNPJ } from '@/lib/formatters.ts';
+import { formatarCNPJ } from '@/lib/formatters';
 
 /* =========================
    TIPAGENS
