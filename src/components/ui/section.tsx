@@ -1,4 +1,4 @@
-import { cn } from "../../lib/utils.ts"
+import { cn } from "../../lib/utils"
 
 interface SectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -47,3 +47,4 @@ export function Section({
     </section>
   )
 }
+
