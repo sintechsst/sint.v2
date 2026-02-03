@@ -14,7 +14,7 @@ import {
   Building2
 } from 'lucide-react';
 import Link from 'next/link';
-import { ThemeToggle } from '@/components/ThemeToogle.tsx';
+import { ThemeToggle } from '@/components/ThemeToogle';
 
 interface Unidade {
   id: string;
