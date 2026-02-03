@@ -1,6 +1,6 @@
 'use server'
 
-import { supabase } from "@/lib/supabase.ts"
+import { supabase } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
 
 export async function registrarLead(formData: FormData) {
@@ -31,4 +31,5 @@ export async function registrarLead(formData: FormData) {
     console.error("Erro Supabase:", error)
     return { success: false, error: "Falha ao salvar no banco." }
   }
+
 }
