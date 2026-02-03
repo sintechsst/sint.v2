@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { PDFDocument, StandardFonts } from 'pdf-lib'
-import { enviarWhatsApp } from './whatsappSender.ts'
+import { enviarWhatsApp } from './whatsappSender'
 import process from "node:process";
 
 const supabase = createClient(
@@ -94,3 +94,4 @@ export async function gerarOS(agendamentoId: string) {
 
   await enviarWhatsApp(empresa.telefone, msg)
 }
+
