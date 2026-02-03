@@ -7,8 +7,8 @@ import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 import { LayoutDashboard, Users, FileText, Settings, LogOut, Menu, ShieldCheck, Calendar } from "lucide-react"
 
-import { cn } from "../../lib/utils.ts"
-import { Badge } from "../../components/ui/badge.tsx"
+import { cn } from "../../lib/utils"
+import { Badge } from "../../components/ui/badge"
 
 const menuItems = [
   { label: "Painel", href: "/dashboard", icon: LayoutDashboard },
