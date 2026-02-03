@@ -1,6 +1,6 @@
 import cron from 'node-cron'
-import { notificarAgendamentos } from './whatsappSender.ts'
-import { gerarOS } from './osGenerator.ts'
+import { notificarAgendamentos } from './whatsappSender'
+import { gerarOS } from './osGenerator'
 import { createClient } from '@supabase/supabase-js'
 import process from "node:process";
 
@@ -23,3 +23,4 @@ cron.schedule('*/5 * * * *', async () => {
     await gerarOS(ag.id)
   }
 })
+
