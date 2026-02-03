@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase.ts'
+import { supabase } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Filter, ArrowUpRight, Building2, X, ShieldAlert, CheckCircle2, AlertTriangle, Zap } from 'lucide-react'
 import { toast } from 'sonner'
@@ -233,4 +233,5 @@ export default function LeadsPage() {
       </AnimatePresence >
     </div >
   )
+
 }
