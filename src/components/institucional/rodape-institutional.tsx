@@ -1,8 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { motionLevels } from "@/components/institucional/motion.ts"
-import InstitutionalContainer from "./institutional-container.tsx";
+import { motionLevels } from "@/components/institucional/motion"
+import InstitutionalContainer from "./institutional-container";
 
 export default function RodapeInstitucional() {
   const hashModelo = "SINTECH-SST-AUTH-2026-SJDR" // Mudei o Hash para incluir sua marca e região
@@ -50,4 +50,5 @@ export default function RodapeInstitucional() {
   </InstitutionalContainer>
 </motion.footer>
   )
+
 }
