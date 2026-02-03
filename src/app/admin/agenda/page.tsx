@@ -6,7 +6,7 @@ import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   User, Search, LayoutGrid, List, X, CheckCircle, Briefcase, Settings, Trash2
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase.ts'
+import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 // 1. INTERFACES DEFINIDAS (Sem 'any')
@@ -315,4 +315,5 @@ export default function AgendaCalendario() {
       </AnimatePresence>
     </div>
   )
+
 }
