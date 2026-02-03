@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { supabase } from "../../lib/supabase.ts"
+import { supabase } from "../../lib/supabase"
 import { LayoutDashboard, Users, FileText, Settings, LogOut, Menu, ShieldCheck, Calendar } from "lucide-react"
 
 import { cn } from "../../lib/utils.ts"
