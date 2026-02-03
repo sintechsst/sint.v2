@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase.ts';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import {
   Users,
