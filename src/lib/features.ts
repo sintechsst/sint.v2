@@ -1,7 +1,7 @@
-import { supabaseServer } from './supabaseServer'
+import { supabaseServer } from './supabase-server'
 
 export async function hasFeature(plano: string, feature: string) {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
 
   const { data } = await supabase
     .from('planos_features')
