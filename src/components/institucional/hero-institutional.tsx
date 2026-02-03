@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { fadeUp, staggerContainer } from "./motion.ts"
+import { fadeUp, staggerContainer } from "./motion"
 
 export default function HeroInstitutional() {
   return (
@@ -56,4 +56,5 @@ export default function HeroInstitutional() {
       </motion.div>
     </motion.section>
   )
+
 }
