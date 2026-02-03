@@ -30,11 +30,14 @@ export default function LoginPage() {
       }
 
       // 2. Verificação de Perfil Master (Bypass)
-      if (email === 'adm@sintech.com') {
-        toast.success('Acesso Master Autorizado')
-        window.location.href = '/admin'
-        return
-      }
+     const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL || 'adm@sintech.com';
+
+if (email === masterEmail) {
+  toast.success('Acesso Master Autorizado');
+  // Usar window.location.href força o navegador a atualizar os cookies para o Middleware
+  window.location.href = '/admin'; 
+  return;
+}
 
       console.log("Tentando buscar perfil para UID:", authData.user?.id);
 
@@ -126,3 +129,4 @@ export default function LoginPage() {
   )
 
 }
+
