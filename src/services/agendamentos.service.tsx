@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase.ts';
+import { supabase } from '../lib/supabase';
 
 export function listarAgendamentos(tenantId: string) {
   return supabase
@@ -50,3 +50,4 @@ export function atualizarStatusAgendamento(
     .eq('id', id)
     .eq('tenant_id', tenantId);
 }
+
