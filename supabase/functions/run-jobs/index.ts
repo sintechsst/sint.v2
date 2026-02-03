@@ -1,4 +1,4 @@
-import { serve } from "std/http/server.ts"
+import { serve } from "std/http/server"
 import { createClient } from "@supabase/supabase-js"
 import { PDFDocument, StandardFonts } from "pdf-lib"
 
