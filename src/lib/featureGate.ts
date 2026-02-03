@@ -2,13 +2,30 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export async function checkFeature(feature: string) {
+  const cookieStore = await cookies()
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies }
+    {
+      cookies: {
+        // 2. Map the methods manually
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set({ name, value, ...options })
+        },
+        remove(name: string, options: any) {
+          cookieStore.set({ name, value: '', ...options })
+        },
+      },
+    }
   )
 
-  const tenantId = cookies().get('tenant_id')?.value
+  // 3. Use the awaited cookieStore for your logic
+  const tenantId = cookieStore.get('tenant_id')?.value
+  
   if (!tenantId) throw new Error('Tenant não identificado')
 
   const { data: tenant } = await supabase
