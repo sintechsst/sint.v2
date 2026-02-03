@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabase.ts';
+import { supabase } from '../../../lib/supabase';
 import { Plus, Building2, Search, ExternalLink, Mail, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { formatarCNPJ } from '../../../lib/formatters.ts';
+import { formatarCNPJ } from '../../../lib/formatters';
 
 interface Empresa {
   id: string;
