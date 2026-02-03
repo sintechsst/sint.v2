@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { supabase } from '@/lib/supabase.ts';
+import { supabase } from '@/lib/supabase';
 import { Plus, Loader2 } from 'lucide-react';
-import { useTenantRole } from '@/hooks/useTenant.ts';
+import { useTenantRole } from '@/hooks/useTenant';
 import { toast } from 'sonner';
-import { CriarAgendamentoModal } from '@/components/agendamento/CriarAgendamentoModal.tsx';
-import { AgendamentoTimeline } from '@/components/agendamento/AgendamentoTimeline.tsx';
-import { cn } from '@/lib/utils.ts';
+import { CriarAgendamentoModal } from '@/components/agendamento/CriarAgendamentoModal';
+import { AgendamentoTimeline } from '@/components/agendamento/AgendamentoTimeline';
+import { cn } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
 
 interface Agendamento {
