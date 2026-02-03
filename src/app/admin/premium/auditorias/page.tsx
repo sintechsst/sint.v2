@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase.ts'
+import { supabase } from '@/lib/supabase'
 import { motion } from 'framer-motion'
 import {
     ShieldCheck, Fingerprint, QrCode, ExternalLink,
@@ -170,4 +170,5 @@ export default function AuditoriasPage() {
             )}
         </div>
     )
+
 }
