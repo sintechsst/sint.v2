@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { registrarLead } from '../../app/actions/leads.ts'
+import { registrarLead } from '../../app/actions/leads'
 import { CheckCircle2 } from 'lucide-react'
 
 export function FormDiagnostico({ isDark }: { isDark: boolean }) {
@@ -72,4 +72,5 @@ export function FormDiagnostico({ isDark }: { isDark: boolean }) {
       </div>
     </section>
   )
+
 }
