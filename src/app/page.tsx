@@ -1,9 +1,9 @@
-import InstitutionalContainer from '../components/institucional/institutional-container.tsx'
-import TopbarInstitucional from '../components/institucional/topbar-institutional.tsx'
-import HeroInstitutional from '../components/institucional/hero-institutional.tsx'
-import SectionInstitutional from '../components/institucional/section-institutional.tsx'
-import { FormDiagnostico } from '../components/institucional/form-diagnostico.tsx'
-import RodapeInstitucional from '../components/institucional/rodape-institutional.tsx'
+import InstitutionalContainer from '../components/institucional/institutional-container'
+import TopbarInstitucional from '../components/institucional/topbar-institutional'
+import HeroInstitutional from '../components/institucional/hero-institutional'
+import SectionInstitutional from '../components/institucional/section-institutional'
+import { FormDiagnostico } from '../components/institucional/form-diagnostico'
+import RodapeInstitucional from '../components/institucional/rodape-institutional'
 
 export default function Page() {
   return (
