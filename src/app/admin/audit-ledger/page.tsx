@@ -9,16 +9,12 @@ interface AuditLog {
   created_at: string
   action: string
   metadata: any
-  documentos?: {
-    nome_arquivo: string
-  }
-  empresas?: {
-    nome_fantasia: string
-  }
-  users?: {
-    email: string
-  }
+  nome_arquivo: string | null
+  nome_fantasia: string | null
+  user_email: string | null
 }
+
+export const dynamic = 'force-dynamic'
 
 export default function AuditLedgerPage() {
   const [logs, setLogs] = useState<AuditLog[]>([])
@@ -26,23 +22,21 @@ export default function AuditLedgerPage() {
 
   async function loadLogs() {
     setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('v_audit_ledger_completo')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200)
 
-    const { data, error } = await supabase
-      .from('audit_logs')
-      .select(`
-        id,
-        created_at,
-        action,
-        metadata,
-        documentos (nome_arquivo),
-        empresas (nome_fantasia),
-        users:auth.users (email)
-      `)
-      .order('created_at', { ascending: false })
-      .limit(200)
-
-    if (!error && data) setLogs(data)
-    setLoading(false)
+      if (!error && data) {
+        setLogs(data as AuditLog[])
+      }
+    } catch (err) {
+      console.error('Erro ao carregar logs:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -50,7 +44,7 @@ export default function AuditLedgerPage() {
   }, [])
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6">
       <div>
         <h1 className="text-4xl font-black italic uppercase tracking-tighter text-red-400 flex items-center gap-3">
           <Shield /> Ledger Global
@@ -77,18 +71,21 @@ export default function AuditLedgerPage() {
                 </p>
                 <p className="text-white font-bold text-sm flex items-center gap-2">
                   <FileText size={14} />
-                  {log.documentos?.nome_arquivo || '—'}
+                  {/* Note a mudança aqui: acesso direto */}
+                  {log.nome_arquivo || '—'}
                 </p>
                 <p className="text-[10px] text-slate-500 flex items-center gap-2">
                   <Building2 size={12} />
-                  {log.empresas?.nome_fantasia || 'Sistema'}
+                  {/* Note a mudança aqui: acesso direto */}
+                  {log.nome_fantasia || 'Sistema'}
                 </p>
               </div>
 
               <div className="text-right space-y-1">
                 <p className="text-[10px] text-slate-400 flex items-center gap-2 justify-end">
                   <User size={12} />
-                  {log.users?.email || 'system'}
+                  {/* Note a mudança aqui: acesso direto */}
+                  {log.user_email || 'system'}
                 </p>
                 <p className="text-[9px] text-slate-600">
                   {new Date(log.created_at).toLocaleString('pt-BR')}
