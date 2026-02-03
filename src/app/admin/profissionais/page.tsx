@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase.ts'
+import { supabase } from '@/lib/supabase'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Award, MapPin, CheckCircle2, Shield, Loader2, Plus, X, ChevronDown, Search } from 'lucide-react'
 import { toast } from 'sonner'
@@ -234,4 +234,5 @@ export default function ProfissionaisPage() {
       </AnimatePresence>
     </div>
   )
+
 }
