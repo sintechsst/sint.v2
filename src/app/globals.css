@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  :root {
+    --background: #ffffff;
+    --foreground: #0f172a;
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  .dark {
+    --background: #05060a; 
+    --foreground: #f8fafc;
+    color-scheme: dark;
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+input:-webkit-autofill {
+  -webkit-text-fill-color: var(--foreground);
+  -webkit-box-shadow: 0 0 0px 1000px var(--background) inset;
+}
+
+
+input[type="date"] {
+  position: relative;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: var(--calendar-icon-filter);
+  
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+}
+
+
+:root { --calendar-icon-filter: invert(0); }
+.dark { --calendar-icon-filter: invert(1); }
