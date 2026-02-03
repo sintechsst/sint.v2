@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { fadeUp, staggerContainer } from "./motion.ts"
+import { fadeUp, staggerContainer } from "./motion"
 
 export default function SectionInstitutional() {
   const pillars = [
@@ -86,4 +86,5 @@ export default function SectionInstitutional() {
       </div>
     </motion.section>
   )
+
 }
