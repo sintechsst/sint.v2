@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase.ts';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { 
   User, 
@@ -14,7 +14,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
-import { ThemeToggle } from '../../../components/ThemeToogle.tsx';
+import { ThemeToggle } from '../../../components/ThemeToogle';
 
 export default function AgendarExameMelhorado() {
   const [loading, setLoading] = useState(false);
@@ -184,4 +184,5 @@ export default function AgendarExameMelhorado() {
       </div>
     </div>
   );
+
 }
