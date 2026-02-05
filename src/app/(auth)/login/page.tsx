@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { ShieldCheck, Loader2 } from 'lucide-react'
 
-// Removido o import do process, Next.js já injeta as vars globalmente
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,6 +16,15 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('ENV ausente:', {
+          NEXT_PUBLIC_SUPABASE_URL: !!supabaseUrl,
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: !!supabaseKey,
+        })
+      }
+
       // 1. Autenticação no Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -28,6 +36,10 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
+
+      const { data: sessionData } = await supabase.auth.getSession()
+      console.log("Sessão após login:", sessionData?.session ? "OK" : "NULA")
+      console.log("Cookies visíveis:", document.cookie || "(vazio)")
 
       // 2. Verificação de Perfil Master (Bypass)
      const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL || 'adm@sintech.com';
