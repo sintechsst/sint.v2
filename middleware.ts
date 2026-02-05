@@ -37,7 +37,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (user) {
-    const masterEmail = process.env.MASTER_ADMIN_EMAIL || ""
+    const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL || ""
     const isMaster = user.email === masterEmail
 
     // 🧠 Role padrão
