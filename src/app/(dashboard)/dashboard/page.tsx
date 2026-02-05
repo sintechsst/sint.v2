@@ -53,10 +53,6 @@ export default function DashboardCliente() {
           return;
         }
 
-        const userId = user.id;
-        console.log("Usuário logado:", user.email, "ID:", userId);
-
-        // Altere esta linha no seu useEffect:
         const { data: vinculos, error: vError } = await supabase
           .from('tenant_users')
           .select(`tenant_id, tenants ( id, nome )`) 
