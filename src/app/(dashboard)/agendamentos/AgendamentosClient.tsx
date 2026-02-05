@@ -34,6 +34,8 @@ interface AgendamentoRow {
   profissionais: { nome: string }[] | null
 }
 
+  const { data: sessionData } = await supabase.auth.getSession()
+  console.log('session user', sessionData?.session?.user?.id)
 
 export default function AgendamentosClient({ tenantId, role }: Props) {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
@@ -77,9 +79,6 @@ export default function AgendamentosClient({ tenantId, role }: Props) {
       supabase.removeChannel(channel)
     }
   }, [tenantId])
-
-  const { data: sessionData } = await supabase.auth.getSession()
-  console.log('session user', sessionData?.session?.user?.id)
 
   
   async function carregarAgendamentos() {
