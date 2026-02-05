@@ -15,8 +15,6 @@ export default async function AgendamentosPage() {
     redirect('/login')
   }
 
-  console.log('tenantId', tenantData.tenant_id)
-
   // Busca tenant e role com segurança no server
   const { data: tenantData, error } = await supabase
     .from('tenant_users')
@@ -27,6 +25,7 @@ export default async function AgendamentosPage() {
   if (error || !tenantData) {
     redirect('/login')
   }
+   console.log('tenantId', tenantData.tenant_id)
 
   return (
     <AgendamentosClient
