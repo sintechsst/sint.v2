@@ -9,6 +9,8 @@ if (!supabaseUrl || supabaseUrl === 'undefined') {
   console.error("❌ ERRO: NEXT_PUBLIC_SUPABASE_URL não está definida no navegador.")
 }
 
+const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:'
+
 export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
   cookies: {
     get(name: string) {
@@ -19,7 +21,7 @@ export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
       setCookie(name, value, {
         path: '/',
         sameSite: 'lax',
-        secure: true,
+        secure: isSecure,
         ...options,
       })
     },
