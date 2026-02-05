@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
+import { getCookie, setCookie, deleteCookie } from 'cookies-next'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -8,4 +9,22 @@ if (!supabaseUrl || supabaseUrl === 'undefined') {
   console.error("❌ ERRO: NEXT_PUBLIC_SUPABASE_URL não está definida no navegador.")
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+  cookies: {
+    get(name: string) {
+      const value = getCookie(name)
+      return value ? String(value) : undefined
+    },
+    set(name: string, value: string, options: any) {
+      setCookie(name, value, {
+        path: '/',
+        sameSite: 'lax',
+        secure: true,
+        ...options,
+      })
+    },
+    remove(name: string, options: any) {
+      deleteCookie(name, { path: '/', ...options })
+    },
+  },
+})
