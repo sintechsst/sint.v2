@@ -53,6 +53,7 @@ export default function DashboardCliente() {
           return;
         }
 
+        const userId = user.id;
         const { data: vinculos, error: vError } = await supabase
           .from('tenant_users')
           .select(`tenant_id, tenants ( id, nome )`) 
