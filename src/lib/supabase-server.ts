@@ -4,9 +4,27 @@ import { cookies } from 'next/headers'
 export async function supabaseServer() {
   const cookieStore = await cookies()
 
+  const supabaseUrl =
+    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey =
+    process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    const missing = [
+      !supabaseUrl ? 'SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL' : null,
+      !supabaseAnonKey
+        ? 'SUPABASE_ANON_KEY / NEXT_PUBLIC_SUPABASE_ANON_KEY'
+        : null,
+    ].filter(Boolean)
+
+    throw new Error(
+      `Supabase server env missing: ${missing.join(', ')}`
+    )
+  }
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {
@@ -16,14 +34,12 @@ export async function supabaseServer() {
           try {
             cookieStore.set({ name, value, ...options })
           } catch (error) {
-            // Silence error: Server Components cannot set cookies
           }
         },
         remove(name: string, options: any) {
           try {
             cookieStore.set({ name, value: '', ...options })
           } catch (error) {
-            // Silence error: Server Components cannot set cookies
           }
         },
       },
