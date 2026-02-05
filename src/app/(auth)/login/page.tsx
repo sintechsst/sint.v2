@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { ShieldCheck, Loader2 } from 'lucide-react'
 
+// Removido o import do process, Next.js já injeta as vars globalmente
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,6 +32,7 @@ export default function LoginPage() {
         ])
       }
 
+      // 1. Autenticação no Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -52,13 +54,20 @@ export default function LoginPage() {
         `Cookies visíveis: ${document.cookie || "(vazio)"}`,
       ])
 
-     const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL || 'adm@sintech.com';
+      const debugPauseRedirect = true
+      if (debugPauseRedirect) {
+        setDebugLines(prev => [...prev, "DEBUG: redirecionamento pausado"])
+      }
 
-if (email === masterEmail) {
-  toast.success('Acesso Master Autorizado');
-  window.location.href = '/admin'; 
-  return;
-}
+      // 2. Verificação de Perfil Master (Bypass)
+      const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL || 'adm@sintech.com';
+
+      if (email === masterEmail) {
+        toast.success('Acesso Master Autorizado');
+        // Usar window.location.href força o navegador a atualizar os cookies para o Middleware
+        if (!debugPauseRedirect) window.location.href = '/admin';
+        return;
+      }
 
       console.log("Tentando buscar perfil para UID:", authData.user?.id);
 
@@ -74,10 +83,10 @@ if (email === masterEmail) {
 
       if (profile?.role === 'admin') {
         toast.success('Acesso Administrativo')
-        window.location.href = '/admin'
+        if (!debugPauseRedirect) window.location.href = '/admin'
       } else if (profile?.role === 'empresa' || profile?.role === 'user') {
         toast.success('Acesso Dashboard')
-        window.location.href = '/dashboard'
+        if (!debugPauseRedirect) window.location.href = '/dashboard'
       } else {
         console.warn("Perfil não encontrado no banco para este UID.");
         toast.error('Perfil não identificado no sistema.')
