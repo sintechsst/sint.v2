@@ -78,7 +78,9 @@ export default function AgendamentosClient({ tenantId, role }: Props) {
     }
   }, [tenantId])
 
-  console.log('tenantId client', tenantId)
+  const { data: sessionData } = await supabase.auth.getSession()
+  console.log('session user', sessionData?.session?.user?.id)
+
   
   async function carregarAgendamentos() {
     setLoading(true)
