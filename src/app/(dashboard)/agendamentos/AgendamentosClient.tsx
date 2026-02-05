@@ -24,6 +24,16 @@ interface Agendamento {
   profissionais: { nome: string } | null
 }
 
+interface AgendamentoRow {
+  id: string
+  tipo_servico: string
+  data_sugerida: string
+  status: string
+  prioridade: string
+  empresas: { nome_fantasia: string }[] | null
+  profissionais: { nome: string }[] | null
+}
+
 export default function AgendamentosClient({ tenantId, role }: Props) {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
   const [loading, setLoading] = useState(true)
@@ -87,7 +97,13 @@ export default function AgendamentosClient({ tenantId, role }: Props) {
     if (error) {
       toast.error('Erro ao carregar agendamentos')
     } else {
-      setAgendamentos((data as Agendamento[]) || [])
+      const rows = (data as AgendamentoRow[]) || []
+      const normalized = rows.map((ag) => ({
+        ...ag,
+        empresas: ag.empresas?.[0] ?? null,
+        profissionais: ag.profissionais?.[0] ?? null,
+      }))
+      setAgendamentos(normalized)
     }
 
     setLoading(false)
