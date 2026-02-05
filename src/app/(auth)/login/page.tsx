@@ -11,27 +11,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [debugLines, setDebugLines] = useState<string[]>([])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setDebugLines([])
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-      if (!supabaseUrl || !supabaseKey) {
-        console.error('ENV ausente:', {
-          NEXT_PUBLIC_SUPABASE_URL: !!supabaseUrl,
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: !!supabaseKey,
-        })
-        setDebugLines(prev => [
-          ...prev,
-          `ENV ausente: URL=${!!supabaseUrl} KEY=${!!supabaseKey}`,
-        ])
-      }
-
       // 1. Autenticação no Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -40,34 +25,19 @@ export default function LoginPage() {
 
       if (authError) {
         toast.error(authError.message)
-        setDebugLines(prev => [...prev, `Auth error: ${authError.message}`])
         setLoading(false)
         return
       }
 
-      const { data: sessionData } = await supabase.auth.getSession()
-      console.log("Sessão após login:", sessionData?.session ? "OK" : "NULA")
-      console.log("Cookies visíveis:", document.cookie || "(vazio)")
-      setDebugLines(prev => [
-        ...prev,
-        `Sessão após login: ${sessionData?.session ? "OK" : "NULA"}`,
-        `Cookies visíveis: ${document.cookie || "(vazio)"}`,
-      ])
-
-      const debugPauseRedirect = true
-      if (debugPauseRedirect) {
-        setDebugLines(prev => [...prev, "DEBUG: redirecionamento pausado"])
-      }
-
       // 2. Verificação de Perfil Master (Bypass)
-      const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL || 'adm@sintech.com';
+     const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL || 'adm@sintech.com';
 
-      if (email === masterEmail) {
-        toast.success('Acesso Master Autorizado');
-        // Usar window.location.href força o navegador a atualizar os cookies para o Middleware
-        if (!debugPauseRedirect) window.location.href = '/admin';
-        return;
-      }
+if (email === masterEmail) {
+  toast.success('Acesso Master Autorizado');
+  // Usar window.location.href força o navegador a atualizar os cookies para o Middleware
+  window.location.href = '/admin'; 
+  return;
+}
 
       console.log("Tentando buscar perfil para UID:", authData.user?.id);
 
@@ -83,21 +53,19 @@ export default function LoginPage() {
 
       if (profile?.role === 'admin') {
         toast.success('Acesso Administrativo')
-        if (!debugPauseRedirect) window.location.href = '/admin'
+        window.location.href = '/admin'
       } else if (profile?.role === 'empresa' || profile?.role === 'user') {
         toast.success('Acesso Dashboard')
-        if (!debugPauseRedirect) window.location.href = '/dashboard'
+        window.location.href = '/dashboard'
       } else {
         console.warn("Perfil não encontrado no banco para este UID.");
         toast.error('Perfil não identificado no sistema.')
-        setDebugLines(prev => [...prev, "Perfil não encontrado no banco para este UID."])
         setLoading(false)
       }
 
     } catch (err: any) {
       console.error('Erro de conexão:', err)
       toast.error(err.message === 'Failed to fetch' ? 'Erro de rede ou Supabase offline.' : 'Erro inesperado.')
-      setDebugLines(prev => [...prev, `Erro de conexão: ${err?.message || 'desconhecido'}`])
       setLoading(false)
     }
   }
@@ -153,14 +121,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {debugLines.length > 0 && (
-          <div className="text-[10px] text-zinc-400 bg-white/5 border border-white/10 rounded-xl p-3 space-y-1">
-            {debugLines.map((line, idx) => (
-              <div key={idx}>{line}</div>
-            ))}
-          </div>
-        )}
-
         <p className="text-center text-[10px] text-zinc-600 uppercase tracking-widest pt-4">
           Conexão Segura Sintech Protocol 2.0
         </p>
@@ -169,4 +129,3 @@ export default function LoginPage() {
   )
 
 }
-
