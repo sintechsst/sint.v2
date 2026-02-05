@@ -27,6 +27,11 @@ export default async function AgendamentosPage() {
 
     if (error || !tenantData) {
       console.error('AgendamentosPage: erro ao buscar tenant', error)
+      const status = (error as any)?.status
+      const code = (error as any)?.code
+      if (status === 403 || code === '42501') {
+        redirect('/not-permission')
+      }
       redirect('/login?error=no-tenant')
     }
 
