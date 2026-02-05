@@ -9,6 +9,9 @@ import { AgendamentoTimeline } from '@/components/agendamento/AgendamentoTimelin
 import { cn } from '@/lib/utils'
 import { useSearchParams } from 'next/navigation'
 
+console.log('tenantId client', tenantId)
+
+
 interface Props {
   tenantId: string
   role: 'admin' | 'empresa'
@@ -33,6 +36,7 @@ interface AgendamentoRow {
   empresas: { nome_fantasia: string }[] | null
   profissionais: { nome: string }[] | null
 }
+
 
 export default function AgendamentosClient({ tenantId, role }: Props) {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
