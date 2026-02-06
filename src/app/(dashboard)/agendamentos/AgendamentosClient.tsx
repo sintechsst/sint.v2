@@ -42,11 +42,11 @@ export default function AgendamentosClient({ tenantId, role }: Props) {
 
   useEffect(() => {
     const deveAbrir = searchParams.get('novo')
-    if (deveAbrir === 'true') {
+    if (deveAbrir === 'true' && tenantId) {
       setIsModalOpen(true)
       window.history.replaceState(null, '', '/agendamentos')
     }
-  }, [searchParams])
+  }, [searchParams, tenantId])
 
   useEffect(() => {
     if (!tenantId) return
@@ -141,7 +141,7 @@ export default function AgendamentosClient({ tenantId, role }: Props) {
             </p>
           </div>
 
-          {role === 'empresa' && (
+          {role === 'empresa' && tenantId && (
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
