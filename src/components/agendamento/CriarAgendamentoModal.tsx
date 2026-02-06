@@ -168,10 +168,10 @@ export function CriarAgendamentoModal({
       onSuccess()
       toast.success('Agendamento solicitado!')
     } else {
-      toast.error('Erro: ' + error.message)
-    }
-    setLoading(false)
-  }
+  console.error('Supabase insert error', error)
+  toast.error('Erro: ' + (error?.message || 'falha ao inserir'))
+}
+
 
   return (
     <div
@@ -554,3 +554,4 @@ export function CriarAgendamentoModal({
     </div>
   )
 }
+
