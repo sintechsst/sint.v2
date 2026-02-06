@@ -37,8 +37,12 @@ interface AgendamentoRow {
   const { data: sessionData } = await supabase.auth.getSession()
   console.log('session user', sessionData?.session?.user?.id)
     
-const { data, error } = await supabase.rpc('debug_auth')
-console.log('debug_auth', data, error)
+const { data: tu, error: tuErr } = await supabase
+  .from('tenant_users')
+  .select('tenant_id, role')
+  .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+
+console.log('tenant_users', tu, tuErr)
 
 
 export default function AgendamentosClient({ tenantId, role }: Props) {
