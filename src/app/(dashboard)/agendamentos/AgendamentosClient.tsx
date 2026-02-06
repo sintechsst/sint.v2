@@ -34,15 +34,6 @@ interface AgendamentoRow {
   profissionais: { nome: string }[] | null
 }
 
-  const { data: sessionData } = await supabase.auth.getSession()
-  console.log('session user', sessionData?.session?.user?.id)
-    
-const { data: tu, error: tuErr } = await supabase
-  .from('tenant_users')
-  .select('tenant_id, role')
-  .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-
-console.log('tenant_users', tu, tuErr)
 
 console.log('insert payload', {
   tenant_id: tenantId,
@@ -57,6 +48,18 @@ console.log('insert payload', {
   servico_id: null,
   status: 'PENDENTE',
 })
+
+  const { data: sessionData } = await supabase.auth.getSession()
+  console.log('session user', sessionData?.session?.user?.id)
+    
+const { data: tu, error: tuErr } = await supabase
+  .from('tenant_users')
+  .select('tenant_id, role')
+  .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+  
+console.log('tenant_users', tu, tuErr)
+
+
 
 
 
