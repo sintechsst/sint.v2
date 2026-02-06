@@ -545,5 +545,4 @@ export function CriarAgendamentoModal({
     </div>
   )
 }
-
-
+}
