@@ -44,6 +44,21 @@ const { data: tu, error: tuErr } = await supabase
 
 console.log('tenant_users', tu, tuErr)
 
+console.log('insert payload', {
+  tenant_id: tenantId,
+  empresa_id: form.empresa_id,
+  profissional_id: form.profissional_id,
+  data_sugerida: form.data_sugerida,
+  nome_funcionario: form.nome_funcionario,
+  cpf: form.cpf,
+  funcao: form.funcao,
+  tipo_exame: form.tipo_exame,
+  tipo_servico: form.tipo_servico,
+  servico_id: null,
+  status: 'PENDENTE',
+})
+
+
 
 export default function AgendamentosClient({ tenantId, role }: Props) {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
