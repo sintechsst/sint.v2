@@ -124,6 +124,11 @@ export function CriarAgendamentoModal({
   }
 
   async function handleSubmit() {
+    if (!tenantId) {
+      toast.error('Tenant não encontrado. Recarregue a página e tente novamente.')
+      return
+    }
+
     console.log('insert payload', {
       tenant_id: tenantId,
       empresa_id: form.empresa_id,
@@ -168,9 +173,10 @@ export function CriarAgendamentoModal({
       onSuccess()
       toast.success('Agendamento solicitado!')
     } else {
-      console.error('Supabase insert error', error)
-        toast.error('Erro: ' + (error?.message || 'falha ao inserir'))
+      toast.error('Erro: ' + error.message)
     }
+    setLoading(false)
+  }
 
   return (
     <div
@@ -552,5 +558,4 @@ export function CriarAgendamentoModal({
       </motion.div>
     </div>
   )
-}
 }
