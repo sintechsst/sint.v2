@@ -36,6 +36,10 @@ interface AgendamentoRow {
 
   const { data: sessionData } = await supabase.auth.getSession()
   console.log('session user', sessionData?.session?.user?.id)
+    
+const { data, error } = await supabase.rpc('debug_auth')
+console.log('debug_auth', data, error)
+
 
 export default function AgendamentosClient({ tenantId, role }: Props) {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
