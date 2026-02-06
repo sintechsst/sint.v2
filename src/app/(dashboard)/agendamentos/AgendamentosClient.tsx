@@ -1,265 +1,561 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Plus, Loader2 } from 'lucide-react'
+import {
+  X,
+  Calendar,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+  User,
+  ChevronRight,
+  Building2,
+  FileText,
+  Briefcase,
+  Sun,
+  Moon,
+} from 'lucide-react'
 import { toast } from 'sonner'
-import { CriarAgendamentoModal } from '@/components/agendamento/CriarAgendamentoModal'
-import { AgendamentoTimeline } from '@/components/agendamento/AgendamentoTimeline'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { useSearchParams } from 'next/navigation'
 
-interface Props {
+interface Empresa {
+  id: string
+  nome_fantasia: string
+}
+
+interface ProfissionalData {
+  profissional_id: string
+  profissionais: {
+    nome: string
+    especialidade: string
+  }
+}
+
+export function CriarAgendamentoModal({
+  tenantId,
+  onClose,
+  onSuccess,
+}: {
   tenantId: string
-  role: 'admin' | 'empresa'
-}
+  onClose: () => void
+  onSuccess: () => void
+}) {
+  const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState(1)
+  const [empresas, setEmpresas] = useState<Empresa[]>([])
+  const [medicos, setMedicos] = useState<ProfissionalData[]>([])
+  const [isDark, setIsDark] = useState(true)
 
-interface Agendamento {
-  id: string
-  tipo_servico: string
-  data_sugerida: string
-  status: string
-  prioridade: string
-  empresas: { nome_fantasia: string } | null
-  profissionais: { nome: string } | null
-}
+  const [form, setForm] = useState({
+    empresa_id: '',
+    tipo_servico: 'Exame ClÃ­nico',
+    data_sugerida: '',
+    profissional_id: '',
+    nome_funcionario: '',
+    cpf: '',
+    funcao: '',
+    tipo_exame: 'Admissional',
+  })
 
-interface AgendamentoRow {
-  id: string
-  tipo_servico: string
-  data_sugerida: string
-  status: string
-  prioridade: string
-  empresas: { nome_fantasia: string }[] | null
-  profissionais: { nome: string }[] | null
-}
-
-export default function AgendamentosClient({ tenantId, role }: Props) {
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
-  const [loading, setLoading] = useState(true)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const searchParams = useSearchParams()
+  const labelClass = cn(
+    'text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-2',
+    isDark ? 'text-zinc-400' : 'text-zinc-500'
+  )
+  const inputClass = cn(
+    'w-full border p-4 rounded-2xl outline-none focus:border-indigo-500 transition-all',
+    isDark
+      ? 'bg-[#111] border-white/10 text-white'
+      : 'bg-zinc-50 border-zinc-200 text-zinc-900'
+  )
 
   useEffect(() => {
-    const deveAbrir = searchParams.get('novo')
-    if (deveAbrir === 'true') {
-      setIsModalOpen(true)
-      window.history.replaceState(null, '', '/agendamentos')
+    async function fetchEmpresas() {
+      if (!tenantId) return
+
+      let { data, error } = await supabase
+        .from('empresas')
+        .select('id, nome_fantasia')
+        .eq('tenant_id', tenantId)
+
+      if (error || !data || data.length === 0) {
+        const { data: fallbackData } = await supabase
+          .from('empresas')
+          .select('id, nome_fantasia')
+        data = fallbackData
+      }
+
+      if (data) setEmpresas(data)
     }
-  }, [searchParams])
-
-  useEffect(() => {
-    if (!tenantId) return
-    carregarAgendamentos()
+    fetchEmpresas()
   }, [tenantId])
 
   useEffect(() => {
-    if (!tenantId) return
-
-    const channel = supabase
-      .channel('agendamentos-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'agendamentos',
-          filter: `tenant_id=eq.${tenantId}`,
-        },
-        () => {
-          carregarAgendamentos()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
+    if (form.data_sugerida && form.tipo_servico) {
+      buscarProfissionaisDisponiveis()
     }
-  }, [tenantId])
+  }, [form.data_sugerida, form.tipo_servico])
 
-  
-  async function carregarAgendamentos() {
-    setLoading(true)
+  async function buscarProfissionaisDisponiveis() {
+    if (!form.data_sugerida || !form.empresa_id) return
 
-    const { data, error } = await supabase
-      .from('agendamentos')
+    const [y, m, d] = form.data_sugerida.split('-').map(Number)
+    const diaSemana = new Date(y, m - 1, d).getDay()
+
+    const { data: escala, error } = await supabase
+      .from('escala_medica')
       .select(`
-        id,
-        tipo_servico,
-        data_sugerida,
-        status,
-        prioridade,
-        empresas ( nome_fantasia ),
-        profissionais ( nome )
-      `)
+      profissional_id, 
+      profissionais!inner(nome, especialidade)
+    `)
+      .eq('dia_semana', diaSemana)
       .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
 
     if (error) {
-      toast.error('Erro ao carregar agendamentos')
-    } else {
-      const rows = (data as AgendamentoRow[]) || []
-      const normalized = rows.map((ag) => ({
-        ...ag,
-        empresas: ag.empresas?.[0] ?? null,
-        profissionais: ag.profissionais?.[0] ?? null,
-      }))
-      setAgendamentos(normalized)
+      console.error('Erro ao buscar escala:', error)
+      toast.error('Erro ao carregar especialistas.')
+      return
     }
 
+    if (escala) {
+      setMedicos(escala as unknown as ProfissionalData[])
+    }
+  }
+
+  async function handleSubmit() {
+    if (!tenantId) {
+      toast.error('Tenant não encontrado. Recarregue a página e tente novamente.')
+      return
+    }
+
+    console.log('insert payload', {
+      tenant_id: tenantId,
+      empresa_id: form.empresa_id,
+      profissional_id: form.profissional_id,
+      data_sugerida: form.data_sugerida,
+      nome_funcionario: form.nome_funcionario,
+      cpf: form.cpf,
+      funcao: form.funcao,
+      tipo_exame: form.tipo_exame,
+      tipo_servico: form.tipo_servico,
+      servico_id: null,
+      status: 'PENDENTE',
+    })
+
+    if (
+      !form.empresa_id ||
+      !form.data_sugerida ||
+      !form.nome_funcionario ||
+      !form.profissional_id
+    ) {
+      toast.error('Preencha todos os campos, incluindo o Especialista')
+      return
+    }
+
+    setLoading(true)
+    const { error } = await supabase.from('agendamentos').insert({
+      tenant_id: tenantId,
+      empresa_id: form.empresa_id,
+      profissional_id: form.profissional_id,
+      data_sugerida: form.data_sugerida,
+      nome_funcionario: form.nome_funcionario,
+      cpf: form.cpf,
+      funcao: form.funcao,
+      tipo_exame: form.tipo_exame,
+      tipo_servico: form.tipo_servico,
+      servico_id: null,
+      status: 'PENDENTE',
+    })
+
+    if (!error) {
+      setStep(2)
+      onSuccess()
+      toast.success('Agendamento solicitado!')
+    } else {
+      toast.error('Erro: ' + error.message)
+    }
     setLoading(false)
   }
 
-  async function atualizarStatus(id: string, status: string) {
-    const novoStatus = status === 'Pendente' ? 'Confirmado' : 'Cancelado'
-
-    const { error } = await supabase
-      .from('agendamentos')
-      .update({ status: novoStatus })
-      .eq('id', id)
-
-    if (error) {
-      toast.error('Erro ao atualizar status')
-    } else {
-      toast.success(`Status alterado para ${novoStatus}`)
-      carregarAgendamentos()
-    }
-  }
-
   return (
-    <Suspense fallback={<Loader2 className="animate-spin" />}>
-      <div className="space-y-8">
-        {/* HEADER ADAPTAVEL */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-black uppercase tracking-tighter text-zinc-900 dark:text-white">
-              Agendamentos
-            </h1>
-            <p className="text-zinc-500 dark:text-slate-500 font-medium">
-              {role === 'admin'
-                ? 'Gerencie todas as solicitacoes operacionais'
-                : 'Solicite novos atendimentos de SST'}
-            </p>
-          </div>
-
-          {role === 'empresa' && (
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2"
+    <div
+      className={cn(
+        'fixed inset-0 z-[100] flex items-center justify-center p-4 transition-colors',
+        isDark ? 'bg-black/80' : 'bg-zinc-950/40 backdrop-blur-md'
+      )}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={cn(
+          'w-full max-w-5xl rounded-[2.5rem] shadow-2xl border overflow-hidden relative',
+          isDark
+            ? 'bg-[#09090b] border-white/5'
+            : 'bg-white border-zinc-200'
+        )}
+      >
+        <AnimatePresence mode="wait">
+          {step === 1 ? (
+            <motion.div
+              key="form"
+              exit={{ opacity: 0, y: -20 }}
+              className="flex flex-col lg:flex-row min-h-[550px]"
             >
-              <Plus size={18} /> Nova Solicitacao
-            </button>
-          )}
-        </div>
+              {/* TOGGLE DARK MODE */}
+              <button
+                type="button"
+                onClick={() => setIsDark(!isDark)}
+                className={cn(
+                  'absolute top-6 right-20 p-2 rounded-full z-[110] transition-colors',
+                  isDark ? 'hover:bg-white/10' : 'hover:bg-zinc-100'
+                )}
+              >
+                {isDark ? (
+                  <Sun size={20} className="text-yellow-500" />
+                ) : (
+                  <Moon size={20} className="text-zinc-500" />
+                )}
+              </button>
 
-        {/* LISTAGEM ADAPTAVEL */}
-        {loading ? (
-          <div className="flex justify-center p-20">
-            <Loader2 className="animate-spin text-indigo-500" />
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-[#0d1017] border border-zinc-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-xl shadow-zinc-200/50 dark:shadow-none">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-slate-500 border-b border-zinc-100 dark:border-white/5">
-                  <tr>
-                    <th className="px-8 py-5">Empresa / Timeline</th>
-                    <th className="px-8 py-5">Servico</th>
-                    <th className="px-8 py-5">Especialista</th>
-                    <th className="px-8 py-5">Data</th>
-                    <th className="px-8 py-5 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-white/5 text-sm font-medium">
-                  {agendamentos.map((ag) => (
-                    <tr
-                      key={ag.id}
-                      className="group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-all"
+              {/* COLUNA PRINCIPAL */}
+              <div
+                className={cn(
+                  'flex-1 p-8 md:p-12 space-y-8',
+                  isDark ? 'bg-[#0d1017]' : 'bg-white'
+                )}
+              >
+                <div className="flex justify-between items-center">
+                  <header>
+                    <h2
+                      className={cn(
+                        'text-2xl font-black uppercase italic tracking-tight',
+                        isDark ? 'text-white' : 'text-zinc-900'
+                      )}
                     >
-                      <td className="px-8 py-6">
-                        <div className="flex flex-col">
-                          <span className="font-black italic uppercase text-zinc-900 dark:text-white tracking-tight text-base">
-                            {ag.empresas?.nome_fantasia || 'N/A'}
-                          </span>
-                          <AgendamentoTimeline status={ag.status} />
-                        </div>
-                      </td>
+                      Novo Agendamento
+                    </h2>
+                    <p
+                      className={cn(
+                        'text-sm',
+                        isDark ? 'text-zinc-400' : 'text-zinc-500'
+                      )}
+                    >
+                      Dados tÃ©cnicos para o atendimento.
+                    </p>
+                  </header>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className={cn(
+                      'p-2 rounded-full transition-colors',
+                      isDark ? 'hover:bg-white/5' : 'hover:bg-zinc-100'
+                    )}
+                  >
+                    <X size={20} className="text-zinc-400" />
+                  </button>
+                </div>
 
-                      <td className="px-8 py-6">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                            Servico
-                          </span>
-                          <span className="text-zinc-700 dark:text-zinc-300 font-bold">
-                            {ag.tipo_servico}
-                          </span>
-                        </div>
-                      </td>
+                {/* GRID DE INPUTS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <User size={14} /> Colaborador
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      value={form.nome_funcionario}
+                      onChange={(e) =>
+                        setForm({ ...form, nome_funcionario: e.target.value })
+                      }
+                      className={inputClass}
+                      placeholder="Nome completo"
+                    />
+                  </div>
 
-                      <td className="px-8 py-6">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                            Especialista
-                          </span>
-                          <span className="inline-flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                            {ag.profissionais?.nome || 'A definir'}
-                          </span>
-                        </div>
-                      </td>
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <FileText size={14} /> CPF
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      value={form.cpf}
+                      onChange={(e) => {
+                        const masked = e.target.value
+                          .replace(/\D/g, '')
+                          .replace(/(\d{3})(\d)/, '$1.$2')
+                          .replace(/(\d{3})(\d)/, '$1.$2')
+                          .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+                          .slice(0, 14)
+                        setForm({ ...form, cpf: masked })
+                      }}
+                      className={inputClass}
+                      placeholder="000.000.000-00"
+                    />
+                  </div>
 
-                      <td className="px-8 py-6 text-zinc-500 dark:text-zinc-400 font-black font-mono text-xs">
-                        {ag.data_sugerida.split('-').reverse().join('/')}
-                      </td>
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <Briefcase size={14} /> Cargo / FunÃ§Ã£o
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      value={form.funcao}
+                      onChange={(e) =>
+                        setForm({ ...form, funcao: e.target.value })
+                      }
+                      className={inputClass}
+                      placeholder="Ex: Engenheiro"
+                    />
+                  </div>
 
-                      <td className="px-8 py-6 text-right">
-                        {role === 'admin' ? (
-                          <button
-                            type="button"
-                            onClick={() => atualizarStatus(ag.id, ag.status)}
-                            className={cn(
-                              'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer hover:scale-105 active:scale-95 border',
-                              ag.status?.toUpperCase() === 'PENDENTE'
-                                ? 'bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
-                                : 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
-                            )}
-                          >
-                            {ag.status}
-                          </button>
-                        ) : (
-                          <span
-                            className={cn(
-                              'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border',
-                              ag.status?.toUpperCase() === 'PENDENTE'
-                                ? 'bg-amber-50 dark:bg-amber-500/5 text-amber-500 border-amber-100 dark:border-amber-500/10'
-                                : 'bg-emerald-50 dark:bg-emerald-500/5 text-emerald-500 border-emerald-100 dark:border-emerald-500/10'
-                            )}
-                          >
-                            {ag.status}
-                          </span>
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <Building2 size={14} /> Unidade
+                    </label>
+                    <select
+                      required
+                      value={form.empresa_id}
+                      onChange={(e) =>
+                        setForm({ ...form, empresa_id: e.target.value })
+                      }
+                      className={cn(
+                        inputClass,
+                        'cursor-pointer',
+                        isDark ? 'bg-[#111] text-white' : 'bg-white text-zinc-900'
+                      )}
+                    >
+                      <option
+                        value=""
+                        className={cn(
+                          'text-zinc-500',
+                          isDark ? 'bg-[#111]' : 'bg-white'
                         )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+                      >
+                        Selecione a unidade...
+                      </option>
+                      {empresas.map((emp) => (
+                        <option
+                          key={emp.id}
+                          value={emp.id}
+                          className={cn(
+                            isDark ? 'bg-[#111] text-white' : 'bg-white text-zinc-900'
+                          )}
+                        >
+                          {emp.nome_fantasia}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-        {/* MODAL DE CRIACAO */}
-        {isModalOpen && (
-          <CriarAgendamentoModal
-            tenantId={tenantId}
-            onClose={() => setIsModalOpen(false)}
-            onSuccess={() => {
-              setIsModalOpen(false)
-              carregarAgendamentos()
-            }}
-          />
-        )}
-      </div>
-    </Suspense>
+                  {/* CAMPO ESPECIALISTA */}
+                  <div className="space-y-2 md:col-span-2">
+                    <label className={labelClass}>
+                      <User size={14} /> Especialista disponÃ­vel para o dia
+                    </label>
+                    <select
+                      required
+                      value={form.profissional_id}
+                      onChange={(e) =>
+                        setForm({ ...form, profissional_id: e.target.value })
+                      }
+                      className={cn(
+                        inputClass,
+                        'cursor-pointer',
+                        !form.data_sugerida && 'opacity-50'
+                      )}
+                      disabled={!form.data_sugerida}
+                    >
+                      <option value="">
+                        {!form.data_sugerida
+                          ? 'Selecione uma data primeiro...'
+                          : medicos.length === 0
+                            ? 'Nenhum especialista nesta data'
+                            : 'Selecione o especialista...'}
+                      </option>
+                      {medicos.map((m) => (
+                        <option key={m.profissional_id} value={m.profissional_id}>
+                          {m.profissionais.nome} - {m.profissionais.especialidade}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* TIPO DE EXAME */}
+                <div className="space-y-3">
+                  <label className={labelClass}>Tipo de Exame</label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {['Admissional', 'PeriÃ³dico', 'Demissional', 'Retorno ao Trabalho'].map(
+                      (tipo) => (
+                        <button
+                          key={tipo}
+                          type="button"
+                          onClick={() => setForm({ ...form, tipo_exame: tipo })}
+                          className={cn(
+                            'py-3 px-2 rounded-xl border text-[10px] font-black uppercase tracking-tighter transition-all duration-300',
+                            form.tipo_exame === tipo
+                              ? 'bg-indigo-600 border-indigo-600 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]'
+                              : isDark
+                                ? 'bg-transparent border-white/10 text-zinc-400'
+                                : 'bg-transparent border-zinc-200 text-zinc-500'
+                          )}
+                        >
+                          {tipo}
+                        </button>
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* COLUNA LATERAL DE REVISAO */}
+              <div
+                className={cn(
+                  'w-full lg:w-[380px] border-l p-8 flex flex-col gap-6',
+                  isDark
+                    ? 'bg-white/[0.02] border-white/5'
+                    : 'bg-zinc-50 border-zinc-200'
+                )}
+              >
+                <div className="space-y-6 flex-1">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                    RevisÃ£o do Pedido
+                  </h3>
+                  <div className="space-y-5">
+                    {[
+                      {
+                        icon: Building2,
+                        label: 'Unidade',
+                        value: empresas.find((e) => e.id === form.empresa_id)
+                          ?.nome_fantasia,
+                      },
+                      { icon: Calendar, label: 'Data', value: form.data_sugerida },
+                      {
+                        icon: User,
+                        label: 'Especialista',
+                        value: medicos.find((m) => m.profissional_id === form.profissional_id)
+                          ?.profissionais.nome,
+                      },
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex gap-4">
+                        <div
+                          className={cn(
+                            'w-10 h-10 rounded-xl border flex items-center justify-center text-indigo-500 shadow-sm',
+                            isDark ? 'bg-zinc-900 border-white/5' : 'bg-white border-zinc-200'
+                          )}
+                        >
+                          <item.icon size={18} />
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-tighter">
+                            {item.label}
+                          </p>
+                          <p
+                            className={cn(
+                              'text-sm font-bold truncate',
+                              isDark ? 'text-white' : 'text-zinc-900'
+                            )}
+                          >
+                            {item.value || '---'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-4 space-y-2">
+                    <label className={labelClass}>Agendar para:</label>
+                    <input
+                      required
+                      type="date"
+                      value={form.data_sugerida}
+                      onChange={(e) =>
+                        setForm({ ...form, data_sugerida: e.target.value })
+                      }
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div
+                  className={cn(
+                    'p-4 border rounded-2xl flex gap-3 items-start',
+                    isDark
+                      ? 'bg-amber-500/10 border-amber-500/20'
+                      : 'bg-amber-500/5 border-amber-500/20'
+                  )}
+                >
+                  <AlertTriangle
+                    className={cn(
+                      'shrink-0',
+                      isDark ? 'text-amber-500' : 'text-amber-600'
+                    )}
+                    size={18}
+                  />
+                  <p
+                    className={cn(
+                      'text-[9px] font-bold uppercase leading-tight',
+                      isDark ? 'text-amber-500' : 'text-amber-700'
+                    )}
+                  >
+                    Importante: Verifique documentos originais e encaminhamentos antes do atendimento.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="w-full p-5 rounded-2xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl active:scale-95 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <>
+                      Confirmar Pedido <ChevronRight size={18} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-12 text-center space-y-6 flex flex-col items-center justify-center min-h-[500px]"
+            >
+              <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 size={40} />
+              </div>
+              <h2
+                className={cn(
+                  'text-3xl font-black uppercase tracking-tighter',
+                  isDark ? 'text-white' : 'text-zinc-900'
+                )}
+              >
+                SolicitaÃ§Ã£o Enviada!
+              </h2>
+              <button
+                type="button"
+                onClick={onClose}
+                className={cn(
+                  'px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-transform',
+                  isDark
+                    ? 'bg-white text-zinc-900'
+                    : 'bg-zinc-900 text-white'
+                )}
+              >
+                Voltar para Lista
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </div>
   )
 }
