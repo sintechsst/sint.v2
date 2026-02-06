@@ -41,7 +41,7 @@ export function CriarAgendamentoModal({
   tenantId: string
   onClose: () => void
   onSuccess: () => void
-}): JSX.Element {
+}) {
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1)
   const [empresas, setEmpresas] = useState<Empresa[]>([])
