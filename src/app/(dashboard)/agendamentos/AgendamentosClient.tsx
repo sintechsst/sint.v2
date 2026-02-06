@@ -49,19 +49,6 @@ console.log('insert payload', {
   status: 'PENDENTE',
 })
 
-  const { data: sessionData } = await supabase.auth.getSession()
-  console.log('session user', sessionData?.session?.user?.id)
-    
-const { data: tu, error: tuErr } = await supabase
-  .from('tenant_users')
-  .select('tenant_id, role')
-  .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-  
-console.log('tenant_users', tu, tuErr)
-
-
-
-
 
 export default function AgendamentosClient({ tenantId, role }: Props) {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
