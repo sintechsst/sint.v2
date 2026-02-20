@@ -1,35 +1,29 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
-export function usePlano() {
+export function usePlano(activeTenant: string | null) {
   const [plano, setPlano] = useState<'basic' | 'pro' | 'premium'>('basic')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!activeTenant) return
+
     async function load() {
       const { data, error } = await supabase
-        .from('tenant_users')
-        .select(`
-          tenants (
-            plano
-          )
-        `)
-        .limit(1)
-        .maybeSingle()
+        .from('tenants')
+        .select('plano')
+        .eq('id', activeTenant)
+        .single()
 
-      if (error) {
-        console.error('Erro ao buscar plano:', error)
-        return
+      if (!error && data) {
+        setPlano(data.plano)
       }
 
-      const planoTenant = data?.tenants?.[0]?.plano
-
-      if (planoTenant) {
-        setPlano(planoTenant)
-      }
+      setLoading(false)
     }
 
     load()
-  }, [])
+  }, [activeTenant])
 
-  return plano
+  return { plano, loading }
 }
