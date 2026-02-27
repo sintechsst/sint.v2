@@ -143,6 +143,7 @@ export default function DossieEmpresaPage() {
         .from('empresas')
         .select('*')
         .eq('id', empresaId)
+        .eq('tenant_id', activeTenant.tenant_id)
         .single();
 
       if (empresaError || !empresaData) {
