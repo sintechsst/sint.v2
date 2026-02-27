@@ -22,30 +22,38 @@ export default function EmpresasPage() {
   const { activeTenant } = useTenant()
 
   useEffect(() => {
-     if (!activeTenant) return
-       async function buscarEmpresas() {
-         const { data, error } = await supabase
-           .from('empresas')
-           .select(`
-           id,
-           nome_fantasia,
-           cnpj,
-           email,
-           cidade
-           `)
-           .eq('tenant_id', activeTenant?.tenant_id)
-           .order('nome_fantasia', { ascending: true });
+  if (!activeTenant) {
+    setEmpresas([])
+    return
+  }
 
-      if (error) {
-        console.error(error);
-      } else if (data) {
-        setEmpresas(data);
-      }
-      setLoading(false);
+  async function buscarEmpresas() {
+    setLoading(true)
 
+    const { data, error } = await supabase
+      .from('empresas')
+      .select(`
+        id,
+        nome_fantasia,
+        cnpj,
+        email,
+        cidade
+      `)
+      .eq('tenant_id', activeTenant.tenant_id)
+      .order('nome_fantasia', { ascending: true })
+
+    if (error) {
+      console.error(error)
+      setEmpresas([])
+    } else if (data) {
+      setEmpresas(data)
     }
-    buscarEmpresas();
-  }, [activeTenant]);
+
+    setLoading(false)
+  }
+
+  buscarEmpresas()
+}, [activeTenant])
 
   const empresasFiltradas = empresas.filter(emp =>
     (emp.nome_fantasia ?? '').toLowerCase().includes(filtro.toLowerCase()) ||
