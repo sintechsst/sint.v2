@@ -3,12 +3,15 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+type Plano = 'basic' | 'pro' | 'premium'
+
 type Membership = {
   tenant_id: string
   role: string
-  tenants: {
+  tenant: {
+    id: string
     nome: string
-    plano: 'basic' | 'pro' | 'premium'
+    plano: Plano
   }
 }
 
@@ -45,7 +48,13 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         .eq('user_id', user.id)
 
       if (data) {
-        setMemberships(data)
+        const normalized: Membership[] = data.map((item: any) => ({
+          tenant_id: item.tenant_id,
+          role: item.role,
+          tenant: item.tenants[0] 
+        }))
+          setMemberships(normalized)
+      }
 
         const savedTenant = localStorage.getItem('activeTenant')
 
