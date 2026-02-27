@@ -1,4 +1,3 @@
-// deno-lint-ignore-file
 'use client'
 
 import { useState } from 'react'
@@ -6,72 +5,70 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { ShieldCheck, Loader2 } from 'lucide-react'
 
-// Removido o import do process, Next.js já injeta as vars globalmente
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+  e.preventDefault()
+  setLoading(true)
 
-    try {
-      // 1. Autenticação no Supabase
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+  try {
+    const { data: authData, error: authError } =
+      await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (authError) {
-        toast.error(authError.message)
-        setLoading(false)
-        return
+    if (authError) {
+      toast.error(authError.message)
+      return
+    }
+
+    const masterEmail =
+      process.env.NEXT_PUBLIC_MASTER_EMAIL || 'adm@sintech.com'
+
+    if (email === masterEmail) {
+      toast.success('Acesso Master Autorizado')
+      window.location.href = '/admin'
+      return
+    }
+
+    const { data: profiles, error: profileError } = await supabase
+      .from('tenant_users')
+      .select('role, tenant_id')
+      .eq('user_id', authData.user?.id)
+
+    if (profileError) {
+      toast.error('Erro ao buscar perfil.')
+      return
+    }
+
+    if (!profiles || profiles.length === 0) {
+      toast.error('Perfil não identificado no sistema.')
+      return
+    }
+
+    if (profiles.length === 1) {
+      const role = profiles[0].role
+
+      if (role === 'admin') {
+        window.location.href = '/admin'
+      } else {
+        window.location.href = '/dashboard'
       }
+      return
+    }
 
-      // 2. Verificação de Perfil Master (Bypass)
-     const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL || 'adm@sintech.com';
-
-if (email === masterEmail) {
-  toast.success('Acesso Master Autorizado');
-  // Usar window.location.href força o navegador a atualizar os cookies para o Middleware
-  window.location.href = '/admin'; 
-  return;
-}
-
-      console.log("Tentando buscar perfil para UID:", authData.user?.id);
-
-      const { data: profiles, error: profileError } = await supabase
-        .from('tenant_users')
-        .select('role, tenant_id')
-        .eq('user_id', authData.user?.id)
-
-      if (profileError) {
-  toast.error('Erro ao buscar perfil.')
-  setLoading(false)
-  return
-}
-
-if (!profiles || profiles.length === 0) {
-  toast.error('Perfil não identificado no sistema.')
-  setLoading(false)
-  return
-}
-
-if (profiles.length === 1) {
-  const role = profiles[0].role
-
-  if (role === 'admin') {
-    window.location.href = '/admin'
-  } else {
-    window.location.href = '/dashboard'
+    window.location.href = '/select-tenant'
+  } catch (error) {
+    console.error(error)
+    toast.error('Erro inesperado no login.')
+  } finally {
+    setLoading(false)
   }
-  return
 }
-
-// 🔥 MAIS DE UM TENANT
-// aqui você deve mostrar tela de seleção de clínica
-window.location.href = '/select-tenant'
 
   return (
     <div className="min-h-screen bg-[#05060a] flex items-center justify-center p-6 text-white font-sans">
@@ -132,4 +129,5 @@ window.location.href = '/select-tenant'
   )
 
 }
+
 
