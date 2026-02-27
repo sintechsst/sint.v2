@@ -41,34 +41,37 @@ if (email === masterEmail) {
 
       console.log("Tentando buscar perfil para UID:", authData.user?.id);
 
-      const { data: profile, error: profileError } = await supabase
+      const { data: profiles, error: profileError } = await supabase
         .from('tenant_users')
-        .select('role')
+        .select('role, tenant_id')
         .eq('user_id', authData.user?.id)
-        .maybeSingle()
 
       if (profileError) {
-        console.error('Erro ao buscar perfil:', profileError)
-      }
+  toast.error('Erro ao buscar perfil.')
+  setLoading(false)
+  return
+}
 
-      if (profile?.role === 'admin') {
-        toast.success('Acesso Administrativo')
-        window.location.href = '/admin'
-      } else if (profile?.role === 'empresa' || profile?.role === 'user') {
-        toast.success('Acesso Dashboard')
-        window.location.href = '/dashboard'
-      } else {
-        console.warn("Perfil não encontrado no banco para este UID.");
-        toast.error('Perfil não identificado no sistema.')
-        setLoading(false)
-      }
+if (!profiles || profiles.length === 0) {
+  toast.error('Perfil não identificado no sistema.')
+  setLoading(false)
+  return
+}
 
-    } catch (err: any) {
-      console.error('Erro de conexão:', err)
-      toast.error(err.message === 'Failed to fetch' ? 'Erro de rede ou Supabase offline.' : 'Erro inesperado.')
-      setLoading(false)
-    }
+if (profiles.length === 1) {
+  const role = profiles[0].role
+
+  if (role === 'admin') {
+    window.location.href = '/admin'
+  } else {
+    window.location.href = '/dashboard'
   }
+  return
+}
+
+// 🔥 MAIS DE UM TENANT
+// aqui você deve mostrar tela de seleção de clínica
+window.location.href = '/select-tenant'
 
   return (
     <div className="min-h-screen bg-[#05060a] flex items-center justify-center p-6 text-white font-sans">
@@ -129,3 +132,4 @@ if (email === masterEmail) {
   )
 
 }
+
