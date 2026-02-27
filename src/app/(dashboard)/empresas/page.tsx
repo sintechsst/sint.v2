@@ -27,6 +27,8 @@ export default function EmpresasPage() {
     return
   }
 
+  const tenantId = activeTenant.tenant_id
+
   async function buscarEmpresas() {
     setLoading(true)
 
@@ -39,7 +41,7 @@ export default function EmpresasPage() {
         email,
         cidade
       `)
-      .eq('tenant_id', activeTenant.tenant_id)
+      .eq('tenant_id', tenantId)
       .order('nome_fantasia', { ascending: true })
 
     if (error) {
