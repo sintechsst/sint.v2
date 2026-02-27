@@ -6,6 +6,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 import { LayoutDashboard, Users, FileText, Settings, LogOut, Menu, ShieldCheck, Calendar } from "lucide-react"
+import { useTenant } from "@/contexts/TenantContext"
 
 import { cn } from "../../lib/utils"
 import { Badge } from "../../components/ui/badge"
@@ -22,6 +23,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+  const { memberships } = useTenant()
 
   useEffect(() => {
     async function checkUser() {
