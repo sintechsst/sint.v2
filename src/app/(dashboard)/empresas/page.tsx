@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase';
 import { Plus, Building2, Search, ExternalLink, Mail, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { formatarCNPJ } from '../../../lib/formatters';
+import { useTenant } from "@/contexts/TenantContext"
 
 interface Empresa {
   id: string;
@@ -18,20 +19,22 @@ export default function EmpresasPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState('');
+  const { activeTenant } = useTenant()
 
   useEffect(() => {
-    async function buscarEmpresas() {
-      const { data, error } = await supabase
-        .from('empresas')
-        .select(`
-          id,
-          nome_fantasia,
-          cnpj,
-          email,
-          cidade
-          `)
-        .order('nome_fantasia', { ascending: true });
-
+     if (!activeTenant) return
+       async function buscarEmpresas() {
+         const { data, error } = await supabase
+           .from('empresas')
+           .select(`
+           id,
+           nome_fantasia,
+           cnpj,
+           email,
+           cidade
+           `)
+           .eq('tenant_id', activeTenant?.tenant_id)
+           .order('nome_fantasia', { ascending: true });
 
       if (error) {
         console.error(error);
@@ -42,7 +45,7 @@ export default function EmpresasPage() {
 
     }
     buscarEmpresas();
-  }, []);
+  }, [activeTenant]);
 
   const empresasFiltradas = empresas.filter(emp =>
     (emp.nome_fantasia ?? '').toLowerCase().includes(filtro.toLowerCase()) ||
