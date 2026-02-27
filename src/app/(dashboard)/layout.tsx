@@ -11,10 +11,15 @@ import { useTenant } from "@/contexts/TenantContext"
 import { cn } from "../../lib/utils"
 import { Badge } from "../../components/ui/badge"
 
-const menuItems = [
+const dynamicMenuItems = [
   { label: "Painel", href: "/dashboard", icon: LayoutDashboard },
   { label: "Agendamentos", href: "/agendamentos", icon: Calendar, badge: "BETA" },
-  { label: "Empresas", href: "/empresas", icon: Users },
+
+  // Só mostra se tiver mais de 1 empresa
+  ...(memberships && memberships.length > 1
+    ? [{ label: "Empresas", href: "/empresas", icon: Users }]
+    : []),
+
   { label: "Laudos", href: "/not-found", icon: FileText },
   { label: "Configurações", href: "/settings", icon: Settings }
 ]
@@ -89,7 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* MENU */}
         <nav className="flex-1 space-y-1">
-          {menuItems.map(item => {
+          {dynamicMenuItems.map(item => {
             const isActive = pathname === item.href
 
             return (
