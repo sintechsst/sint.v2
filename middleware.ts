@@ -57,13 +57,13 @@ export async function middleware(request: NextRequest) {
         .from("tenant_users")
         .select("role, tenants ( plano )")
         .eq("user_id", user.id)
-        .maybeSingle()
-
-      role = membership?.role || null
-
-      const tenant = membership?.tenants as any
-      plano = Array.isArray(tenant) ? tenant[0]?.plano : tenant?.plano
-    }
+        
+      if (memberships && memberships.length > 0) {
+        role = memberships[0].role
+          
+        const tenant = memberships[0].tenants as any
+          plano = Array.isArray(tenant) ? tenant[0]?.plano : tenant?.plano
+      }
 
     // 🔁 Logado tentando acessar login
     if (pathname === "/login") {
