@@ -29,51 +29,56 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [activeTenant, setActiveTenant] = useState<Membership | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+useEffect(() => {
+  async function load() {
+    const { data: { user } } = await supabase.auth.getUser()
 
-      const { data } = await supabase
-        .from('tenant_users')
-        .select(`
-          tenant_id,
-          role,
-          tenants (
-            id,
-            nome,
-            plano
-          )
-        `)
-        .eq('user_id', user.id)
-
-      if (data) {
-        const normalized: Membership[] = data.map((item: any) => ({
-          tenant_id: item.tenant_id,
-          role: item.role,
-          tenant: item.tenants[0] 
-        }))
-          setMemberships(normalized)
-      }
-
-        const savedTenant = localStorage.getItem('activeTenant')
-
-        if (savedTenant) {
-          const found = data.find(t => t.tenant_id === savedTenant)
-          if (found) setActiveTenant(found)
-        }
-
-        if (!savedTenant && data.length === 1) {
-          setActiveTenant(data[0])
-          localStorage.setItem('activeTenant', data[0].tenant_id)
-        }
-      }
-
+    if (!user) {
       setLoading(false)
+      return
     }
 
-    load()
-  }, [])
+    const { data } = await supabase
+      .from('tenant_users')
+      .select(`
+        tenant_id,
+        role,
+        tenants (
+          id,
+          nome,
+          plano
+        )
+      `)
+      .eq('user_id', user.id)
+
+    if (data && data.length > 0) {
+
+      const normalized: Membership[] = data.map((item: any) => ({
+        tenant_id: item.tenant_id,
+        role: item.role,
+        tenant: item.tenants[0]
+      }))
+
+      setMemberships(normalized)
+
+      const savedTenant = localStorage.getItem('activeTenant')
+
+      if (savedTenant) {
+        const found = normalized.find(t => t.tenant_id === savedTenant)
+        if (found) setActiveTenant(found)
+      }
+
+      if (!savedTenant && normalized.length === 1) {
+        setActiveTenant(normalized[0])
+        localStorage.setItem('activeTenant', normalized[0].tenant_id)
+      }
+    }
+
+    setLoading(false)
+  }
+
+  load()
+}, [])
 
   function switchTenant(tenantId: string) {
     const found = memberships.find(t => t.tenant_id === tenantId)
