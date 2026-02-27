@@ -11,7 +11,13 @@ import { useTenant } from "@/contexts/TenantContext"
 import { cn } from "../../lib/utils"
 import { Badge } from "../../components/ui/badge"
 
-const dynamicMenuItems = [
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const pathname = usePathname()
+  const router = useRouter()
+  const { memberships } = useTenant()
+
+  const dynamicMenuItems = [
   { label: "Painel", href: "/dashboard", icon: LayoutDashboard },
   { label: "Agendamentos", href: "/agendamentos", icon: Calendar, badge: "BETA" },
 
@@ -23,12 +29,6 @@ const dynamicMenuItems = [
   { label: "Laudos", href: "/not-found", icon: FileText },
   { label: "Configurações", href: "/settings", icon: Settings }
 ]
-
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const pathname = usePathname()
-  const router = useRouter()
-  const { memberships } = useTenant()
 
   useEffect(() => {
     async function checkUser() {
